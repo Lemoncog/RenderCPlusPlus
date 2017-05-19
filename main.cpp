@@ -4,11 +4,19 @@
 #include "model.h"
 #include <math.h>
 
+using namespace std;
+
 void box(TGAImage &image, int xStart, int yStart, int xEnd, int yEnd);
 void line(TGAImage &image, Vec2f start, Vec2f end);
 void line(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
 void lineB(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
+void lineStep1(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
+void lineStep2(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
+void lineStep3(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
+void lineStep4(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
+void lineStep5(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
 void lineA(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
+void wireFrame(TGAImage &image, Model& model);
 
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
@@ -22,13 +30,15 @@ int main(int argc, const char * argv[]) {
     
     Vec3f vec(1.0f, 0.0f, 0.0f);
 
-    float width = 100;
-    float height = 100;
+    float width = 800;
+    float height = 600;
     TGAImage image(width, height, TGAImage::RGB);
 
-    line(image, Vec2f(width, height), Vec2f(0.f, 0.f), white);
-    line(image, Vec2f(10.f, 0), Vec2f(width, 95.f), red);
-    line(image, Vec2f(35.f, 35), Vec2f(70.f, 25.f), white);
+    wireFrame(image, model);
+
+//    line(image, Vec2f(width, height), Vec2f(0.f, 0.f), white);
+//    line(image, Vec2f(10.f, 0), Vec2f(width, 95.f), red);
+//    line(image, Vec2f(35.f, 35), Vec2f(70.f, 25.f), white);
 
 //    line(image, Vec2f(0.f, height), Vec2f(width, 0.f), white);
 //    line(image, Vec2f(width, 0), Vec2f(0.f, 95.f), red);
@@ -47,25 +57,179 @@ int main(int argc, const char * argv[]) {
     
     return 0;
 }
-void line(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
-    lineA(image, start, end, color);
+
+Vec3f normalize(Vec3f vec, int width, int height) {
+    return Vec3f(vec.x * width, vec.y * height, vec.z);
 }
 
-void lineA(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
+void wireFrame(TGAImage &image, Model& model) {
+    int width = image.get_width();
+    int height = image.get_height();
+
+    for(int i = 0;i < model.nfaces(); i++) {
+        vector<int> vector = model.face(i);
+
+        Vec3f pointA = normalize(model.vert(vector[0]), width, height);
+        Vec3f pointB = normalize(model.vert(vector[1]), width, height);
+        Vec3f pointC = normalize(model.vert(vector[2]), width, height);
+
+        Vec2f start(pointA.x, pointA.y);
+        Vec2f end(pointB.x, pointB.y);
+        line(image, start, end);
+
+        Vec2f startB(pointB.x, pointB.y);
+        Vec2f endB(pointC.x, pointC.y);
+        line(image, startB, endB);
+
+        Vec2f startC(pointC.x, pointC.y);
+        Vec2f endC(pointA.x, pointA.y);
+        line(image, startC, endC);
+    }
+}
+
+
+void line(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
+    lineStep5(image, start, end, color);
+}
+
+void lineStep1(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
     float startX = start.x;
     float startY = start.y;
 
     float endX = end.x;
     float endY = end.y;
 
-    for (float t=0.; t<1.; t+=.01) {
+    double stepIncr = .01;
 
-        int x = startX * (1. - t) + endX * t;
-        int y = startY*(1.-t) + endY*t;
+    for (float step=0.; step < 1.; step+=stepIncr) {
+
+
+        int x = startX * (1. - step) + endX * step;
+        int y = startY*(1.-step) + endY*step;
         image.set(x, y, color);
     }
 }
 
+void lineStep2(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
+    int x0 = start.x;
+    int x1 = end.x;
+    int y0 = start.y;
+    int y1 = end.y;
+    
+    for (int x=x0; x <= x1; x++) {
+        float t = (x-x0)/(float)(x1-x0);
+        int y = y0*(1.-t) + y1*t;
+        image.set(x, y, color);
+    }
+}
+
+void lineStep3(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
+    int x0 = start.x;
+    int x1 = end.x;
+    int y0 = start.y;
+    int y1 = end.y;
+
+    bool steep = false;
+    if (std::abs(x0 - x1) < std::abs(y0 - y1)) { // if the line is steep, we transpose the image
+        std::swap(x0, y0);
+        std::swap(x1, y1);
+        steep = true;
+    }
+    if (x0 > x1) { // make it left−to−right
+        std::swap(x0, x1);
+        std::swap(y0, y1);
+    }
+    for (int x = x0; x <= x1; x++) {
+        float t = (x - x0) / (float) (x1 - x0);
+        int y = y0 * (1. - t) + y1 * t;
+        if (steep) {
+            image.set(y, x, color); // if transposed, de−transpose
+        } else {
+            image.set(x, y, color);
+        }
+    }
+}
+
+void lineStep4(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
+    int startX = start.x;
+    int endX = end.x;
+    int startY = start.y;
+    int endY = end.y;
+
+    bool steep = false;
+    if (std::abs(startX-endX)<std::abs(startY-endY)) {
+        std::swap(startX, startY);
+        std::swap(endX, endY);
+        steep = true;
+    }
+    if (startX>endX) {
+        std::swap(startX, endX);
+        std::swap(startY, endY);
+    }
+
+    int xDiff = endX-startX;
+    int yDiff = endY-startY;
+
+    float derror = std::abs(yDiff/float(xDiff));
+    float error = 0;
+
+    int y = startY;
+    for (int x=startX; x<=endX; x++) {
+        if (steep) {
+            image.set(y, x, color);
+        } else {
+            image.set(x, y, color);
+        }
+        error += derror;
+        if (error>.5) {
+            y += (endY>startY?1:-1);
+            error -= 1.;
+        }
+    }
+}
+
+void lineStep5(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
+    int startX = start.x;
+    int endX = end.x;
+    int startY = start.y;
+    int endY = end.y;
+
+    bool steep = false;
+    if (std::abs(startX-endX)<std::abs(startY-endY)) {
+        std::swap(startX, startY);
+        std::swap(endX, endY);
+        steep = true;
+    }
+    if (startX>endX) {
+        std::swap(startX, endX);
+        std::swap(startY, endY);
+    }
+
+    int xDiff = endX-startX;
+    int yDiff = endY-startY;
+
+    float derror2 = std::abs(yDiff*2);
+    float error2 = 0;
+
+    int y = startY;
+    for (int x=startX; x<=endX; x++) {
+        if (steep) {
+            image.set(y, x, color);
+        } else {
+            image.set(x, y, color);
+        }
+        error2 += derror2;
+        if (error2>.5) {
+            y += (endY>startY?1:-1);
+            error2 -= xDiff*2;
+        }
+    }
+}
+
+/**
+ * My line.
+ * Attempt B
+ */
 void lineB(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
     int xDiff = end.x - start.x;
     int yDiff = end.y - start.y;
@@ -73,8 +237,10 @@ void lineB(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
     float lineLength = abs(sqrt((xDiff*xDiff)+(yDiff*yDiff)));
 
     float xStep = xDiff/lineLength;
-
     float yStep = yDiff/lineLength;
+
+    float derror = abs(float(yDiff)/float(xDiff));
+    float error = 0;
 
     for(int s = 0; s < lineLength; s++) {
         image.set(start.x+(xStep*s), start.y+(yStep*s), color);
@@ -85,7 +251,7 @@ void lineB(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
 }
 
 void line(TGAImage &image, Vec2f start, Vec2f end) {
-    line(image, start, end);
+    line(image, start, end, red);
 }
 
 void box(TGAImage &image, int xStart, int yStart, int xEnd, int yEnd) {
