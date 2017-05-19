@@ -30,8 +30,8 @@ int main(int argc, const char * argv[]) {
     
     Vec3f vec(1.0f, 0.0f, 0.0f);
 
-    float width = 800;
-    float height = 600;
+    float width = 1200;
+    float height = 900;
     TGAImage image(width, height, TGAImage::RGB);
 
     wireFrame(image, model);
@@ -62,6 +62,10 @@ Vec3f normalize(Vec3f vec, int width, int height) {
     return Vec3f(vec.x * width, vec.y * height, vec.z);
 }
 
+Vec3f center(Vec3f vec, int width, int height) {
+    return Vec3f(vec.x+(width/2), vec.y+(height/2), vec.z);
+}
+
 void wireFrame(TGAImage &image, Model& model) {
     int width = image.get_width();
     int height = image.get_height();
@@ -69,27 +73,33 @@ void wireFrame(TGAImage &image, Model& model) {
     for(int i = 0;i < model.nfaces(); i++) {
         vector<int> vector = model.face(i);
 
+        TGAColor color = TGAColor(arc4random()*255, arc4random()*255, arc4random()*255, 255);
+
         Vec3f pointA = normalize(model.vert(vector[0]), width, height);
         Vec3f pointB = normalize(model.vert(vector[1]), width, height);
         Vec3f pointC = normalize(model.vert(vector[2]), width, height);
 
+        pointA = center(pointA, width, height);
+        pointB = center(pointB, width, height);
+        pointC = center(pointC, width, height);
+
         Vec2f start(pointA.x, pointA.y);
         Vec2f end(pointB.x, pointB.y);
-        line(image, start, end);
+        line(image, start, end, color);
 
         Vec2f startB(pointB.x, pointB.y);
         Vec2f endB(pointC.x, pointC.y);
-        line(image, startB, endB);
+        line(image, startB, endB, color);
 
         Vec2f startC(pointC.x, pointC.y);
         Vec2f endC(pointA.x, pointA.y);
-        line(image, startC, endC);
+        line(image, startC, endC, color);
     }
 }
 
 
 void line(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
-    lineStep5(image, start, end, color);
+    lineB(image, start, end, color);
 }
 
 void lineStep1(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
