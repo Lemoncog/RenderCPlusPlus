@@ -7,6 +7,7 @@
 using namespace std;
 
 void box(TGAImage &image, int xStart, int yStart, int xEnd, int yEnd);
+void triangle(TGAImage &image, Vec2f a, Vec2f b, Vec2f c,TGAColor color);
 void line(TGAImage &image, Vec2f start, Vec2f end);
 void line(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
 void lineB(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
@@ -83,20 +84,19 @@ void wireFrame(TGAImage &image, Model& model) {
         pointB = center(pointB, width, height);
         pointC = center(pointC, width, height);
 
-        Vec2f start(pointA.x, pointA.y);
-        Vec2f end(pointB.x, pointB.y);
-        line(image, start, end, color);
+        Vec2f pointA2(pointA.x, pointA.y);
+        Vec2f pointB2(pointB.x, pointB.y);
+        Vec2f pointC2(pointC.x, pointC.y);
 
-        Vec2f startB(pointB.x, pointB.y);
-        Vec2f endB(pointC.x, pointC.y);
-        line(image, startB, endB, color);
-
-        Vec2f startC(pointC.x, pointC.y);
-        Vec2f endC(pointA.x, pointA.y);
-        line(image, startC, endC, color);
+        triangle(image, pointA2, pointB2, pointC2, color);
     }
 }
 
+void triangle(TGAImage &image, Vec2f a, Vec2f b, Vec2f c,TGAColor color) {
+    line(image, a, b, color);
+    line(image, b, c, color);
+    line(image, c, a, color);
+}
 
 void line(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
     lineB(image, start, end, color);
