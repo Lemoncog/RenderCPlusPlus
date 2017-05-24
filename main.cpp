@@ -12,6 +12,7 @@ void triangleFilled(TGAImage &image, Vec2f a, Vec2f b, Vec2f c,TGAColor color);
 void triangleSweepSOHCAHTOA(TGAImage &image, Vec2f a, Vec2f b, Vec2f c,TGAColor color);
 void triangleBCeriFormula(TGAImage &image, Vec2f a, Vec2f b, Vec2f c, TGAColor color);
 void triangleBaryFormula(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor color);
+void triangleLineTracing(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor color);
 void line(TGAImage &image, Vec2f start, Vec2f end);
 void line(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
 void lineB(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
@@ -23,9 +24,11 @@ void lineStep5(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
 void lineA(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
 void wireFrame(TGAImage &image, Model& model);
 
-const TGAColor WHITE = TGAColor(255, 255, 255, 255);
+const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor blue  = TGAColor(0, 255, 255, 255);
+const TGAColor green = TGAColor(0, 255, 0, 255);
+const TGAColor yellow = TGAColor(255, 255, 200, 255);
 
 int main(int argc, const char * argv[]) {
     
@@ -39,8 +42,16 @@ int main(int argc, const char * argv[]) {
     float height = 900;
     TGAImage image(width, height, TGAImage::RGB);
 
-//    triangleFilled(image, Vec2f(100, 100), Vec2f(700, 700), Vec2f(500, 100), WHITE);
-    wireFrame(image, model);
+    //Flat top
+    triangleFilled(image, Vec2f(100, 100), Vec2f(450, 700), Vec2f(800, 100), white);
+
+    //Flat bottom
+    triangleFilled(image, Vec2f(800, 800), Vec2f(900, 400), Vec2f(1000, 800), yellow);
+
+//    triangleFilled(image, Vec2f(200, 800), Vec2f(550, 700), Vec2f(1000, 100), red);
+//    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
+//    triangleFilled(image, Vec2f(100, 500), Vec2f(900, 700), Vec2f(900, 400), green);
+//    wireFrame(image, model);
 
 //    line(image, Vec2f(width, height), Vec2f(0.f, 0.f), WHITE);
 //    line(image, Vec2f(10.f, 0), Vec2f(width, 95.f), red);
@@ -93,12 +104,12 @@ void wireFrame(TGAImage &image, Model& model) {
         Vec2f pointB2(pointB.x, pointB.y);
         Vec2f pointC2(pointC.x, pointC.y);
 
-        triangleFilled(image, pointA2, pointB2, pointC2, WHITE);
+        triangleFilled(image, pointA2, pointB2, pointC2, white);
     }
 }
 
 void triangleFilled(TGAImage &image, Vec2f a, Vec2f b, Vec2f c,TGAColor color) {
-    triangleBCeriFormula(image, a, b, c, color);
+    triangleLineTracing(image, a, b, c, color);
     triangle(image, a, b, c, color);
 }
 
@@ -119,12 +130,61 @@ int calculateX(int y, Vec2f v1, Vec2f v2) {
     return (y - (b))/m;
 }
 
+
+void triangleLineTracing(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor color) {
+    //this breaks it all
+    //Sort so that lowest y is always first
+    if(v1.y > v2.y) {
+        Vec2f tmp = v1;
+        v1 = v2;
+        v2 = tmp;
+    }
+
+    if(v1.y > v3.y) {
+        Vec2f tmp = v1;
+        v1 = v3;
+        v3 = tmp;
+    }
+
+    if(v2.y > v3.y) {
+        Vec2f tmp = v2;
+        v2 = v3;
+        v3 = tmp;
+    }
+
+    //Is this bottom or flat
+
+    float xDiff = v2.x - v1.x;
+    float yDiff = v2.y - v1.y;
+
+    //Right side..
+    float xDiff2 = v3.x - v1.x;
+    float yDiff2 = v3.y - v1.y;
+
+    float linesToDraw = abs(v2.y - v1.y);
+    float slope1 = xDiff/yDiff;
+    float slope2 = xDiff2/yDiff2;
+
+    float x1 = v1.x;
+    float x2 = v1.x;
+
+    for(int s = 0; s < linesToDraw; s++) {
+        //Start at bottom left
+        Vec2f start(x1, v1.y + (s));
+        Vec2f end(x2, v1.y + (s));
+
+        line(image, start, end, color);
+
+        x1 += slope1;
+        x2 += slope2;
+    }
+}
+
 void triangleBaryFormula(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor color) {
 
 }
 
 void triangleBCeriFormula(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor color) {
-
     float minY = 0;
     if(v1.y < v2.y && v1.y < v3.y) {
         minY = v1.y;
@@ -323,9 +383,6 @@ void lineB(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
     float xStep = xDiff/lineLength;
     float yStep = yDiff/lineLength;
 
-    float derror = abs(float(yDiff)/float(xDiff));
-    float error = 0;
-
     for(int s = 0; s < lineLength; s++) {
         image.set(start.x+(xStep*s), start.y+(yStep*s), color);
     }
@@ -344,7 +401,7 @@ void box(TGAImage &image, int xStart, int yStart, int xEnd, int yEnd) {
 
     for(int x = 0; x < xDiff; x++) {
         for(int y = 0; y < yDiff; y++) {
-            image.set(xStart+x, yStart+y, WHITE);
+            image.set(xStart+x, yStart+y, white);
         }
     }
 }
