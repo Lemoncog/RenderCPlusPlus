@@ -47,12 +47,12 @@ int main(int argc, const char * argv[]) {
 
     //Flat top
     triangleFilled(image, Vec2f(100, 100), Vec2f(450, 700), Vec2f(800, 100), white);
-
-    //Flat bottom
+//
+//    //Flat bottom
     triangleFilled(image, Vec2f(800, 800), Vec2f(900, 400), Vec2f(1000, 800), yellow);
-
+//
     triangleFilled(image, Vec2f(200, 800), Vec2f(550, 700), Vec2f(1000, 100), red);
-    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
+//    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
     triangleFilled(image, Vec2f(100, 500), Vec2f(900, 700), Vec2f(900, 400), green);
 //    wireFrame(image, model);
 
@@ -154,6 +154,10 @@ void triangleLineTracing(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor
         v2 = v3;
         v3 = tmp;
     }
+
+    //Split da triangle!
+
+
 
     //Is this bottom or flat
     if(v2.y > v1.y) {
