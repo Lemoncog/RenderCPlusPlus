@@ -51,9 +51,9 @@ int main(int argc, const char * argv[]) {
     //Flat bottom
     triangleFilled(image, Vec2f(800, 800), Vec2f(900, 400), Vec2f(1000, 800), yellow);
 
-//    triangleFilled(image, Vec2f(200, 800), Vec2f(550, 700), Vec2f(1000, 100), red);
-//    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
-//    triangleFilled(image, Vec2f(100, 500), Vec2f(900, 700), Vec2f(900, 400), green);
+    triangleFilled(image, Vec2f(200, 800), Vec2f(550, 700), Vec2f(1000, 100), red);
+    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
+    triangleFilled(image, Vec2f(100, 500), Vec2f(900, 700), Vec2f(900, 400), green);
 //    wireFrame(image, model);
 
 //    line(image, Vec2f(width, height), Vec2f(0.f, 0.f), WHITE);
@@ -165,23 +165,23 @@ void triangleLineTracing(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor
 
 void drawFlatBottom(TGAImage &image, const Vec2f &v1, const Vec2f &v2, const Vec2f &v3, const TGAColor &color) {//Bottom
     float xDiff = v2.x - v3.x;
-    float yDiff = v2.y - v3.y;
+    float yDiff = v3.y - v2.y;
 
     //Right side..
     float xDiff2 = v1.x - v3.x;
-    float yDiff2 = v1.y - v3.y;
+    float yDiff2 = v3.y - v1.y;
 
     float linesToDraw = abs(v2.y - v3.y);
     float slope1 = xDiff / yDiff;
     float slope2 = xDiff2 / yDiff2;
 
-    float x1 = v1.x;
-    float x2 = v1.x;
+    float x1 = v3.x;
+    float x2 = v3.x;
 
-    for (int s = 0; s < linesToDraw; s++) {
+    for (int s = v3.y; s > v2.y; s--) {
         //Start at bottom left
-        Vec2f start(x1, v1.y + (s));
-        Vec2f end(x2, v1.y + (s));
+        Vec2f start(x1, s);
+        Vec2f end(x2, s);
 
         line(image, start, end, color);
 
