@@ -24,6 +24,9 @@ void lineStep5(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
 void lineA(TGAImage &image, Vec2f start, Vec2f end, TGAColor color);
 void wireFrame(TGAImage &image, Model& model);
 
+void drawFlatTop(TGAImage &image, const Vec2f &v1, const Vec2f &v2, const Vec2f &v3, const TGAColor &color);
+void drawFlatBottom(TGAImage &image, const Vec2f &v1, const Vec2f &v2, const Vec2f &v3, const TGAColor &color);
+
 const TGAColor white = TGAColor(255, 255, 255, 255);
 const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor blue  = TGAColor(0, 255, 255, 255);
@@ -153,22 +156,29 @@ void triangleLineTracing(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor
     }
 
     //Is this bottom or flat
+    if(v2.y > v1.y) {
+        drawFlatTop(image, v1, v2, v3, color);
+    } else {
+        drawFlatBottom(image, v1, v2, v3, color);
+    }
+}
 
-    float xDiff = v2.x - v1.x;
-    float yDiff = v2.y - v1.y;
+void drawFlatBottom(TGAImage &image, const Vec2f &v1, const Vec2f &v2, const Vec2f &v3, const TGAColor &color) {//Bottom
+    float xDiff = v2.x - v3.x;
+    float yDiff = v2.y - v3.y;
 
     //Right side..
-    float xDiff2 = v3.x - v1.x;
-    float yDiff2 = v3.y - v1.y;
+    float xDiff2 = v1.x - v3.x;
+    float yDiff2 = v1.y - v3.y;
 
-    float linesToDraw = abs(v2.y - v1.y);
-    float slope1 = xDiff/yDiff;
-    float slope2 = xDiff2/yDiff2;
+    float linesToDraw = abs(v2.y - v3.y);
+    float slope1 = xDiff / yDiff;
+    float slope2 = xDiff2 / yDiff2;
 
     float x1 = v1.x;
     float x2 = v1.x;
 
-    for(int s = 0; s < linesToDraw; s++) {
+    for (int s = 0; s < linesToDraw; s++) {
         //Start at bottom left
         Vec2f start(x1, v1.y + (s));
         Vec2f end(x2, v1.y + (s));
@@ -178,6 +188,33 @@ void triangleLineTracing(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor
         x1 += slope1;
         x2 += slope2;
     }
+}
+
+void drawFlatTop(TGAImage &image, const Vec2f &v1, const Vec2f &v2, const Vec2f &v3, const TGAColor &color) {//Bottom
+    float xDiff = v2.x - v1.x;
+    float yDiff = v2.y - v1.y;
+
+    //Right side..
+    float xDiff2 = v3.x - v1.x;
+    float yDiff2 = v3.y - v1.y;
+
+    float linesToDraw = abs(v2.y - v1.y);
+    float slope1 = xDiff / yDiff;
+    float slope2 = xDiff2 / yDiff2;
+
+    float x1 = v1.x;
+    float x2 = v1.x;
+
+    for (int s = 0; s < linesToDraw; s++) {
+            //Start at bottom left
+            Vec2f start(x1, v1.y + (s));
+            Vec2f end(x2, v1.y + (s));
+
+            line(image, start, end, color);
+
+            x1 += slope1;
+            x2 += slope2;
+        }
 }
 
 void triangleBaryFormula(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor color) {
