@@ -100,32 +100,48 @@ void wireFrame(TGAImage &image, Model& model) {
 
     for(int i = 0;i < model.nfaces(); i++) {
         vector<int> vector = model.face(i);
+        Vec3f pointA = model.vert(vector[0]);
+        Vec3f pointB = model.vert(vector[1]);
+        Vec3f pointC = model.vert(vector[2]);
 
-        TGAColor color = TGAColor(arc4random()*255, arc4random()*255, arc4random()*255, 255);
+        Vec3f normalA = Vec3f(pointA);
+        Vec3f normalB = Vec3f(pointB);
+        Vec3f normalC = Vec3f(pointC);
+        Vec3f edgeAB = normalA - normalB;
+        Vec3f edgeCA = normalC - normalA;
 
-        Vec3f pointA = normalize(model.vert(vector[0]), width, height);
-        Vec3f pointB = normalize(model.vert(vector[1]), width, height);
-        Vec3f pointC = normalize(model.vert(vector[2]), width, height);
+        Vec3f normal = cross(edgeAB, edgeCA);
+        normal.normalize(1);
+        float intensity = normal * Vec3f(0, 0, -1);
 
-        pointA = scale(pointA, 0.4f);
-        pointB = scale(pointB, 0.4f);
-        pointC = scale(pointC, 0.4f);
+        if(intensity > 0) {
+            //Work out the normal of each triangles.
+            TGAColor color = TGAColor(255.f * intensity, 255.f * intensity, 255.f * intensity, 255);
 
-        pointA = center(pointA, width, height);
-        pointB = center(pointB, width, height);
-        pointC = center(pointC, width, height);
+            Vec3f screenA = normalize(pointA, width, height);
+            Vec3f screenB = normalize(pointB, width, height);
+            Vec3f screenC = normalize(pointC, width, height);
 
-        Vec2f pointA2(pointA.x, pointA.y);
-        Vec2f pointB2(pointB.x, pointB.y);
-        Vec2f pointC2(pointC.x, pointC.y);
+            screenA = scale(screenA, 0.4f);
+            screenB = scale(screenB, 0.4f);
+            screenC = scale(screenC, 0.4f);
 
-        triangleFilled(image, pointA2, pointB2, pointC2, color);
+            screenA = center(screenA, width, height);
+            screenB = center(screenB, width, height);
+            screenC = center(screenC, width, height);
+
+            Vec2f pointA2(screenA.x, screenA.y);
+            Vec2f pointB2(screenB.x, screenB.y);
+            Vec2f pointC2(screenC.x, screenC.y);
+
+            triangleFilled(image, pointA2, pointB2, pointC2, color);
+        }
     }
 }
 
 void triangleFilled(TGAImage &image, Vec2f a, Vec2f b, Vec2f c,TGAColor color) {
     triangleLineTracing(image, a, b, c, color);
-    triangle(image, a, b, c, lineColor);
+//    triangle(image, a, b, c, lineColor);
 }
 
 Vec2f calculateDiff(Vec2f from, Vec2f to) {
@@ -175,9 +191,7 @@ void triangleLineTracing(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor
     } else {
         //split.. put a new vertix in that splits the triangle...
         //y
-        float triangleHeight = v3.y - v1.y;
         float topHeight = v3.y - v2.y;
-        float bottomHeight = v2.y - v1.y;
         float v4y = v3.y - topHeight;
 
         //x
@@ -202,7 +216,6 @@ void drawFlatBottom(TGAImage &image, const Vec2f &v1, const Vec2f &v2, const Vec
     float xDiff2 = v1.x - v3.x;
     float yDiff2 = v3.y - v1.y;
 
-    float linesToDraw = abs(v2.y - v3.y);
     float slope1 = xDiff / yDiff;
     float slope2 = xDiff2 / yDiff2;
 
@@ -454,9 +467,6 @@ void lineB(TGAImage &image, Vec2f start, Vec2f end, TGAColor color) {
     for(int s = 0; s < lineLength; s++) {
         image.set(start.x+(xStep*s), start.y+(yStep*s), color);
     }
-
-    image.set(start.x, start.y, blue);
-    image.set(end.x, end.y, blue);
 }
 
 void line(TGAImage &image, Vec2f start, Vec2f end) {
