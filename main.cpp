@@ -1,4 +1,5 @@
 #include <iostream>
+#include <vector>
 #include "geometry.h"
 #include "tgaimage.h"
 #include "model.h"
@@ -42,20 +43,20 @@ int main(int argc, const char * argv[]) {
     
     Vec3f vec(1.0f, 0.0f, 0.0f);
 
-    float width = 1200;
+    float width = 1000;
     float height = 900;
     TGAImage image(width, height, TGAImage::RGB);
 
     //Flat top
-    triangleFilled(image, Vec2f(100, 100), Vec2f(450, 700), Vec2f(800, 100), white);
+//    triangleFilled(image, Vec2f(100, 100), Vec2f(450, 700), Vec2f(800, 100), white);
 //
 //    //Flat bottom
-    triangleFilled(image, Vec2f(800, 800), Vec2f(900, 400), Vec2f(1000, 800), yellow);
+//    triangleFilled(image, Vec2f(800, 800), Vec2f(900, 400), Vec2f(1000, 800), yellow);
 //
-    triangleFilled(image, Vec2f(200, 800), Vec2f(550, 700), Vec2f(1000, 100), red);
-    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
-    triangleFilled(image, Vec2f(100, 500), Vec2f(900, 700), Vec2f(900, 400), green);
-//    wireFrame(image, model);
+//    triangleFilled(image, Vec2f(200, 800), Vec2f(550, 700), Vec2f(1000, 100), red);
+//    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
+//    triangleFilled(image, Vec2f(100, 500), Vec2f(900, 700), Vec2f(900, 400), green);
+    wireFrame(image, model);
 
 //    line(image, Vec2f(width, height), Vec2f(0.f, 0.f), WHITE);
 //    line(image, Vec2f(10.f, 0), Vec2f(width, 95.f), red);
@@ -87,6 +88,12 @@ Vec3f center(Vec3f vec, int width, int height) {
     return Vec3f(vec.x+(width/2), vec.y+(height/2), vec.z);
 }
 
+Vec3f scale(Vec3f vec, float scale) {
+    Vec3f result = vec * scale;
+
+    return result;
+}
+
 void wireFrame(TGAImage &image, Model& model) {
     int width = image.get_width();
     int height = image.get_height();
@@ -100,6 +107,10 @@ void wireFrame(TGAImage &image, Model& model) {
         Vec3f pointB = normalize(model.vert(vector[1]), width, height);
         Vec3f pointC = normalize(model.vert(vector[2]), width, height);
 
+        pointA = scale(pointA, 0.4f);
+        pointB = scale(pointB, 0.4f);
+        pointC = scale(pointC, 0.4f);
+
         pointA = center(pointA, width, height);
         pointB = center(pointB, width, height);
         pointC = center(pointC, width, height);
@@ -108,7 +119,7 @@ void wireFrame(TGAImage &image, Model& model) {
         Vec2f pointB2(pointB.x, pointB.y);
         Vec2f pointC2(pointC.x, pointC.y);
 
-        triangleFilled(image, pointA2, pointB2, pointC2, white);
+        triangleFilled(image, pointA2, pointB2, pointC2, color);
     }
 }
 
