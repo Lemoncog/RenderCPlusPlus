@@ -32,6 +32,7 @@ const TGAColor red   = TGAColor(255, 0,   0,   255);
 const TGAColor blue  = TGAColor(0, 255, 255, 255);
 const TGAColor green = TGAColor(0, 255, 0, 255);
 const TGAColor yellow = TGAColor(255, 255, 200, 255);
+const TGAColor lineColor = TGAColor(255, 255, 255, 255);
 
 int main(int argc, const char * argv[]) {
     
@@ -52,7 +53,7 @@ int main(int argc, const char * argv[]) {
     triangleFilled(image, Vec2f(800, 800), Vec2f(900, 400), Vec2f(1000, 800), yellow);
 //
     triangleFilled(image, Vec2f(200, 800), Vec2f(550, 700), Vec2f(1000, 100), red);
-//    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
+    triangleFilled(image, Vec2f(500, 800), Vec2f(750, 200), Vec2f(800, 800), blue);
     triangleFilled(image, Vec2f(100, 500), Vec2f(900, 700), Vec2f(900, 400), green);
 //    wireFrame(image, model);
 
@@ -113,7 +114,7 @@ void wireFrame(TGAImage &image, Model& model) {
 
 void triangleFilled(TGAImage &image, Vec2f a, Vec2f b, Vec2f c,TGAColor color) {
     triangleLineTracing(image, a, b, c, color);
-    triangle(image, a, b, c, color);
+    triangle(image, a, b, c, lineColor);
 }
 
 Vec2f calculateDiff(Vec2f from, Vec2f to) {
@@ -155,15 +156,30 @@ void triangleLineTracing(TGAImage &image, Vec2f v1, Vec2f v2, Vec2f v3, TGAColor
         v3 = tmp;
     }
 
-    //Split da triangle!
-
-
-
     //Is this bottom or flat
-    if(v2.y > v1.y) {
+    if(v2.y == v1.y) {
+        drawFlatBottom(image, v1, v2, v3, color);
+    } else if (v2.y == v3.y){
         drawFlatTop(image, v1, v2, v3, color);
     } else {
-        drawFlatBottom(image, v1, v2, v3, color);
+        //split.. put a new vertix in that splits the triangle...
+        //y
+        float triangleHeight = v3.y - v1.y;
+        float topHeight = v3.y - v2.y;
+        float bottomHeight = v2.y - v1.y;
+        float v4y = v3.y - topHeight;
+
+        //x
+        float xDiff = v1.x - v3.x;
+        float yDiff = v3.y - v1.y;
+        float slope = xDiff / yDiff;
+        float yPointDist = topHeight;
+
+        float v4x = v3.x + (slope * yPointDist);
+        Vec2f v4 = Vec2f(v4x, v4y);
+
+        drawFlatBottom(image, v4, v2, v3, color);
+        drawFlatTop(image, v1, v2, v4, color);
     }
 }
 
